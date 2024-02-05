@@ -122,7 +122,7 @@ rule CXX_STATIC_LIBRARY_LINKER__pico_ssd1306_Debug
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = "C:\Program Files\Raspberry Pi\Pico SDK v1.5.1\cmake\bin\cmake.exe" --regenerate-during-build -SC:\Users\Gui\Desktop\Isep\3°ano\1°Semestre\LABSI\teclado\software\TKL-KEYBOARD\source -BC:\Users\Gui\Desktop\Isep\3°ano\1°Semestre\LABSI\teclado\software\TKL-KEYBOARD\build
+  command = "C:\Program Files\Raspberry Pi\Pico SDK v1.5.1\cmake\bin\cmake.exe" --regenerate-during-build -SC:\Users\Gui\Desktop\Isep\3°ano\1°Semestre\LABSI\TKL-KEYBOARD\source -BC:\Users\Gui\Desktop\Isep\3°ano\1°Semestre\LABSI\TKL-KEYBOARD\build
   description = Re-running CMake...
   generator = 1
 

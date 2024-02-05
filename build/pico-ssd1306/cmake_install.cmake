@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/Gui/Desktop/Isep/3°ano/1°Semestre/LABSI/teclado/software/TKL-KEYBOARD/source/pico-ssd1306
+# Install script for directory: C:/Users/Gui/Desktop/Isep/3°ano/1°Semestre/LABSI/TKL-KEYBOARD/source/pico-ssd1306
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

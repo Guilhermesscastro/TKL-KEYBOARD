@@ -1,0 +1,4 @@
+Ref,Val,Package,PosX,PosY,Rot,Side
+"D89","LED","LED_1206_3216Metric",354.012500,-83.343750,180.000000,top
+"J3","Conn_01x04","PinSocket_1x04_P2.54mm_Vertical",373.948750,-45.239153,90.000000,top
+"R12","1k","R_0402_1005Metric",349.786250,-83.343750,180.000000,top

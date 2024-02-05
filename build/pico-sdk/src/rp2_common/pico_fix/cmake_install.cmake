@@ -39,7 +39,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("C:/Users/Gui/Desktop/Isep/3°ano/1°Semestre/LABSI/teclado/software/TKL-KEYBOARD/build/pico-sdk/src/rp2_common/pico_fix/rp2040_usb_device_enumeration/cmake_install.cmake")
+  include("C:/Users/Gui/Desktop/Isep/3°ano/1°Semestre/LABSI/TKL-KEYBOARD/build/pico-sdk/src/rp2_common/pico_fix/rp2040_usb_device_enumeration/cmake_install.cmake")
 
 endif()
 

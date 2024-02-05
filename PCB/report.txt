@@ -1,0 +1,12 @@
+Atenção: Restrição da correção da largura.  Para as regras atuais do projeto o valor da correção deve estar num intervalo de [0,000001 mm; 0,199999 mm].
+Plotted to 'C:\Users\Gui\Desktop\Isep\3°ano\LABSI\teclado\TKL_PCB\TKL_PCB-F_Cu.gbr'.
+Plotted to 'C:\Users\Gui\Desktop\Isep\3°ano\LABSI\teclado\TKL_PCB\TKL_PCB-B_Cu.gbr'.
+Plotted to 'C:\Users\Gui\Desktop\Isep\3°ano\LABSI\teclado\TKL_PCB\TKL_PCB-F_Paste.gbr'.
+Plotted to 'C:\Users\Gui\Desktop\Isep\3°ano\LABSI\teclado\TKL_PCB\TKL_PCB-B_Paste.gbr'.
+Plotted to 'C:\Users\Gui\Desktop\Isep\3°ano\LABSI\teclado\TKL_PCB\TKL_PCB-F_Silkscreen.gbr'.
+Plotted to 'C:\Users\Gui\Desktop\Isep\3°ano\LABSI\teclado\TKL_PCB\TKL_PCB-B_Silkscreen.gbr'.
+Plotted to 'C:\Users\Gui\Desktop\Isep\3°ano\LABSI\teclado\TKL_PCB\TKL_PCB-F_Mask.gbr'.
+Plotted to 'C:\Users\Gui\Desktop\Isep\3°ano\LABSI\teclado\TKL_PCB\TKL_PCB-B_Mask.gbr'.
+Plotted to 'C:\Users\Gui\Desktop\Isep\3°ano\LABSI\teclado\TKL_PCB\TKL_PCB-Edge_Cuts.gbr'.
+Arquivo de trabalho do Gerber 'C:\Users\Gui\Desktop\Isep\3°ano\LABSI\teclado\TKL_PCB\TKL_PCB-job.gbrjob' foi criado.
+Informação: Feito.

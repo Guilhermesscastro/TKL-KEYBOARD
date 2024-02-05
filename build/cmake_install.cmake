@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/Gui/Desktop/Isep/3°ano/1°Semestre/LABSI/teclado/software/TKL-KEYBOARD/source
+# Install script for directory: C:/Users/Gui/Desktop/Isep/3°ano/1°Semestre/LABSI/TKL-KEYBOARD/source
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -39,8 +39,8 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("C:/Users/Gui/Desktop/Isep/3°ano/1°Semestre/LABSI/teclado/software/TKL-KEYBOARD/build/pico-sdk/cmake_install.cmake")
-  include("C:/Users/Gui/Desktop/Isep/3°ano/1°Semestre/LABSI/teclado/software/TKL-KEYBOARD/build/pico-ssd1306/cmake_install.cmake")
+  include("C:/Users/Gui/Desktop/Isep/3°ano/1°Semestre/LABSI/TKL-KEYBOARD/build/pico-sdk/cmake_install.cmake")
+  include("C:/Users/Gui/Desktop/Isep/3°ano/1°Semestre/LABSI/TKL-KEYBOARD/build/pico-ssd1306/cmake_install.cmake")
 
 endif()
 
@@ -52,5 +52,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "C:/Users/Gui/Desktop/Isep/3°ano/1°Semestre/LABSI/teclado/software/TKL-KEYBOARD/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "C:/Users/Gui/Desktop/Isep/3°ano/1°Semestre/LABSI/TKL-KEYBOARD/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
