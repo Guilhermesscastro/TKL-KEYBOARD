@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "i2c.h": "c",
+        "usb_hid_keys.h": "c"
+    }
+}

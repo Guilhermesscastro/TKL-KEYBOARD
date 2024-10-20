@@ -21,7 +21,10 @@ add_executable(picotkl
     keyboard.c
     led.c
     usb_descriptors.c
+    bongocat.c
 )
+
+pico_generate_pio_header(picotkl ${CMAKE_CURRENT_LIST_DIR}/encoder.pio)
 
 target_include_directories(picotkl PRIVATE include)
 
@@ -40,4 +43,6 @@ add_subdirectory(pico-ssd1306)
 target_link_libraries(picotkl
 pico_ssd1306
 # you will also need hardware i2c library for communication with the display
-hardware_i2c)
+hardware_i2c
+hardware_pio
+)

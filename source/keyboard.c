@@ -3,8 +3,13 @@
 #include "tusb.h"
 #include "usb_hid_keys.h"
 #include "usb_descriptors.h"
-
+#include "bongocat.h"
 #include "keyboard.h"
+#include "hardware/pio.h"
+#include "hardware/clocks.h"
+#include "encoder.pio.h"
+#include "hardware/timer.h"
+#include "hardware/irq.h"
 
 typedef uint16_t keycode_t;
 
@@ -18,6 +23,10 @@ uint8_t default_position = 0;
 int config_row_map[N_ROWS] = {10, 11, 8, 9, 6, 7, 4, 5, 14, 15, 12, 13};
 int config_column_map[N_COLS] = {25, 24, 23, 22, 21, 20, 19, 18};
 
+PIO pio;
+uint sm;
+
+volatile bool is_hid_task_ready = false;
 
 static keycode_t keymap[N_ROWS][N_COLS] = {
     {KEY_ESC,         KEY_F2,           KEY_F4,     KEY_F6,      KEY_F8,        KEY_F10,          KEY_F12,          KEY_SCROLLLOCK},
@@ -61,7 +70,6 @@ static keycode_t code2mod(keycode_t code) {
     return mod;
 }
 
-
 uint8_t poll_columns(int *columns, int *rows, int n_cols, int n_rows) 
 {
     int current_key_index = 0;
@@ -69,7 +77,7 @@ uint8_t poll_columns(int *columns, int *rows, int n_cols, int n_rows)
     memset(keybuffer, 0x0, MAX_COINCIDENT_KEYS);
     for (int col = 0; col < n_cols; ++col) {
         gpio_put(columns[col], 1);
-        sleep_us(10);
+        sleep_us(5000);
         for (int row = 0; row < n_rows; ++row) {
             int switch_status = gpio_get(rows[row]);
             if (switch_status) {
@@ -93,9 +101,8 @@ uint8_t poll_columns(int *columns, int *rows, int n_cols, int n_rows)
                     
                     gpio_put(columns[col], 0);
                     return REPORT_ID_CONSUMER_CONTROL;
-                    //continue;
                 }
-                
+                trigger_bongocat_tap();
                 keybuffer[current_key_index] = current_scancode;
                 current_key_index++;
 
@@ -114,18 +121,15 @@ uint8_t poll_columns(int *columns, int *rows, int n_cols, int n_rows)
                     
                     gpio_put(columns[col], 0);
                     return REPORT_ID_CONSUMER_CONTROL;
-                    //continue;
                 }
             }
         }
         gpio_put(columns[col], 0);
-        sleep_us(10);
     }
     return REPORT_ID_KEYBOARD;
 }
 
-void keypins_init()
-{
+void keypins_init() {
     //puts("Inside keypins_init");
     for (int i = 0; i < N_ROWS; ++i) {
         gpio_init(config_row_map[i]);
@@ -143,8 +147,7 @@ void keypins_init()
     //puts("End keypins_init");
 }
 
-static void send_hid_consumer_report()
-{
+static void send_hid_consumer_report() {
     if ( !tud_hid_ready() ) return;
     uint16_t consumer_keybuffer = 0;
 
@@ -165,16 +168,9 @@ static void send_hid_consumer_report()
     }
         
     tud_hid_report(REPORT_ID_CONSUMER_CONTROL, &consumer_keybuffer, 2);
-    
-    /*if (consumer_keybuffer){}else{
-        uint16_t empty_key = 0;
-    
-        tud_hid_report(REPORT_ID_CONSUMER_CONTROL, &empty_key, 2);
-    }*/
 }
 
-static void send_hid_report(uint8_t report_id) 
-{
+static void send_hid_report(uint8_t report_id) {
     if ( !tud_hid_ready() ) return;
     
     switch (report_id)
@@ -189,109 +185,79 @@ static void send_hid_report(uint8_t report_id)
     
 }
 
-//encoder rotation to be implemented
-#if 0
-void encoder_callback(){
-    
-    uint8_t rea = gpio_get(REA_PIN);
-    uint8_t reb = gpio_get(REB_PIN);
-    uint8_t oldrea = rea;
-    uint8_t oldreb = reb;
-
-    while(1) {
-       rea = gpio_get(REA_PIN);
-       reb = gpio_get(REB_PIN);
-
-        if (rea != oldrea) {
-            if(reb!= rea) { 
-                position++;
-                
-            }
-            if (reb == rea) {
-                position--;
-            }
-            
-            oldrea = rea;
-            oldreb = reb;
-
-        }else{
-            
-            return ;
-        }
-        sleep_ms(1);
-    }
-}
-uint8_t encoder_task(){
-    if(position > default_position){
-        consumer_key = KEY_VOLUMEUP;
-        position--;
-
-        return REPORT_ID_CONSUMER_CONTROL;
-
-    }else if(position < default_position){
-        consumer_key = KEY_VOLUMEDOWN;
-        position++;
-       
-        return REPORT_ID_CONSUMER_CONTROL;
-
-    }else if(consumer_key != (0 && KEY_MUTE)){
-        consumer_key = 0;
-        
-        return REPORT_ID_CONSUMER_CONTROL;
-
-    }else{
-        return REPORT_ID_KEYBOARD;
-    }
-    
-}
-
-
-
 void encoder_init() {
-    
-    gpio_init(REA_PIN);
-    gpio_set_dir(REA_PIN, GPIO_IN);
-    gpio_init(REB_PIN);
-    gpio_set_dir(REB_PIN, GPIO_IN)
-    gpio_set_irq_enabled_with_callback(REA_PIN, GPIO_IRQ_EDGE_FALL, true, &encoder_callback);
-    gpio_set_irq_enabled_with_callback(REB_PIN, GPIO_IRQ_EDGE_FALL, true);
-    ;
+    pio = pio0;
+    uint offset = pio_add_program(pio, &quadratureA_program);
+    sm = pio_claim_unused_sm(pio, true);
+
+    quadratureA_program_init(pio, sm, offset, REA_PIN, REB_PIN);
 }
-#endif
+
+int32_t read_encoder() {
+    pio_sm_exec_wait_blocking(pio, sm, pio_encode_in(pio_x, 32));
+    return pio_sm_get_blocking(pio, sm);
+}
+
+uint8_t encoder_task() {
+    static int32_t last_count = 0;
+    static absolute_time_t last_change_time = {0};
+    absolute_time_t current_time = get_absolute_time();
+
+    int32_t current_count = read_encoder();
+    int32_t diff = current_count - last_count;
+
+    // Debounce: Require at least 10ms between changes
+    if (diff != 0 && absolute_time_diff_us(last_change_time, current_time) > DEBOUNCE_INTERVAL_MS) {
+        if (diff > 0) {
+            consumer_key = KEY_VOLUMEUP;
+            last_count = current_count;
+            last_change_time = current_time;
+            return REPORT_ID_CONSUMER_CONTROL;
+        } else if (diff < 0) {
+            consumer_key = KEY_VOLUMEDOWN;
+            last_count = current_count;
+            last_change_time = current_time;
+            return REPORT_ID_CONSUMER_CONTROL;
+        }
+    }
+
+    return REPORT_ID_KEYBOARD;  // Default to keyboard report if no encoder change
+}
 
 // Every 10ms, we will send 1 report for each HID profile
 // tud_hid_report_complete_cb() is used to send the next 
 // report after the previous one is complete
-void hid_task(void) 
-{
-    // Poll every 10ms
-    const uint32_t interval_ms = 10;
-    static uint32_t start_ms = 0;
 
-    if (board_millis() - start_ms < interval_ms) return; // not enough time
-    start_ms += interval_ms;
+void timer_callback(uint alarm_num) {
+    is_hid_task_ready = true;
+}
+
+void setup_timer(void) {
+    // Configure the timer to fire every DEBOUNCE_INTERVAL_MS milliseconds
+    hardware_alarm_claim(0);
+    hardware_alarm_set_callback(0, timer_callback);
+    hardware_alarm_set_target(0, make_timeout_time_ms(DEBOUNCE_INTERVAL_MS));
+}
+
+void hid_task(void) {
+    if (!is_hid_task_ready) {
+        return; // Not enough time has passed
+    }
+    
+    is_hid_task_ready = false;
 
     uint8_t report_id = poll_columns(config_column_map, config_row_map, N_COLS, N_ROWS);
-    /*if(report_id == REPORT_ID_KEYBOARD) {
-            report_id = encoder_task();
-        }*/
+    if (report_id == REPORT_ID_KEYBOARD) {
+        report_id = encoder_task();
+    }
+    
     send_hid_report(report_id);
 
+    // Reset the timer for the next interval
+    hardware_alarm_set_target(0, make_timeout_time_ms(DEBOUNCE_INTERVAL_MS));
 }
 
-//report selection with encoder
-#if 0
-// Invoked when sent REPORT successfully to host
-// Application can use this to send the next report
-// Note: For composite reports, report[0] is report ID
-void tud_hid_report_complete_cb(uint8_t instance, uint8_t const* report, uint16_t len){
-    (void) instance;
-    (void) len;
-    uint8_t next_report_id = report[0] + 2u;
-
-  if (next_report_id == REPORT_ID_CONSUMER_CONTROL)
-  {
-    send_hid_consumer_report();
-  }     
+// Call this function once in your main setup
+void init_hid_task(void) {
+    setup_timer();
 }
-#endif

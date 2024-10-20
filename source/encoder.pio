@@ -1,0 +1,79 @@
+;  SPDX-FileCopyrightText: 
+;        2022 Jamon Terrell <github@jamonterrell.com>
+;        2023 Arda Alıcı     <ardayaozel@hotmail.com>
+;  SPDX-License-Identifier: MIT
+
+.program quadratureB
+start:
+    wait 0 pin 0            ; wait for B == 0
+    jmp PIN, wait_high      ; if A == 0
+    mov y, !x                   ; x++ {
+    jmp y--, nop1               ;
+nop1:                           ;
+    mov x, !y                   ; }
+    jmp nop2
+wait_high:
+    jmp x--, nop2           ; x-- {
+nop2:                       ; }
+
+    wait 1 PIN 0            ; wait for B == 1
+    jmp PIN, wait_low       ; if A == 0
+    jmp x--, start               ; x-- {
+                               ; }
+wait_low:                   ; else
+    mov y, !x                   ; x++ {
+    jmp y--, nop4               ;
+nop4:                           ;
+    mov x, !y                   ;
+    jmp start                   ; }
+
+% c-sdk {
+static inline void quadratureB_program_init(PIO pio, uint sm, uint offset, uint a_pin, uint b_pin) {
+    pio_sm_config c = quadratureB_program_get_default_config(offset);
+
+    sm_config_set_in_pins(&c, a_pin);
+    sm_config_set_jmp_pin(&c, b_pin);
+    sm_config_set_in_shift(&c, false, true, 32);
+    pio_sm_init(pio, sm, offset, &c);
+    pio_sm_set_enabled(pio, sm, true);
+}
+%}
+
+
+.program quadratureA
+start:
+    wait 1 pin 0            ; wait for A == 1
+    jmp PIN, wait_high      ; if B == 0
+    mov y, !x                   ; x++ {
+    jmp y--, nop1               ;
+nop1:                           ;
+    mov x, !y                   ; }
+    jmp nop2
+wait_high:
+    jmp x--, nop2           ; x-- {
+nop2:                       ; }
+
+    wait 0 PIN 0            ; wait for A == 0
+    jmp PIN, wait_low       ; if B == 0
+    jmp x--, start               ; x-- {
+                               ; }
+wait_low:                   ; else
+    mov y, !x                   ; x++ {
+    jmp y--, nop4               ;
+nop4:                           ;
+    mov x, !y                   ;
+    jmp start                   ; }
+
+
+
+% c-sdk {
+static inline void quadratureA_program_init(PIO pio, uint sm, uint offset, uint a_pin, uint b_pin) {
+    pio_sm_config c = quadratureA_program_get_default_config(offset);
+
+    sm_config_set_in_pins(&c, b_pin);
+    sm_config_set_jmp_pin(&c, a_pin);
+    sm_config_set_in_shift(&c, false, true, 32);
+    pio_sm_init(pio, sm, offset, &c);
+    pio_sm_set_enabled(pio, sm, true);
+}
+%}

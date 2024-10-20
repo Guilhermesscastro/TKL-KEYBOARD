@@ -7,8 +7,10 @@
 #include "hardware/i2c.h"
 #include "pico-ssd1306/ssd1306.h"
 #include "keyboard.h"
-
+#include "bongocat.h"
 #include "led.h"
+#include "hardware/timer.h"
+#include "hardware/irq.h"
 
 
 /*uint64_tboard_us(void) 
@@ -27,9 +29,7 @@ void display_setup(void) {
 
     disp.external_vcc = false;
     ssd1306_init(&disp, 128, 32, 0x3C, i2c0);
-    ssd1306_clear(&disp);
-    ssd1306_draw_string(&disp, 8, 16, 2,"Hello World");
-    ssd1306_show(&disp);
+    bongocat_init(&disp);
 }
 
 
@@ -39,13 +39,13 @@ int main(void)
     keypins_init();
     tusb_init();
     display_setup();
-    //encoder_init();
+    encoder_init();
+    init_hid_task();
 
     while (1) {
         tud_task();
         hid_task();
-        //led_blinking_task();
-        //led_pwm_task();
+        update_bongocat_animation(&disp);
     }
     return 0;
 }
@@ -80,6 +80,7 @@ void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t rep
     tud_hid_report(0, buffer, bufsize);
 }
 */
+
 // Invoked when received SET_REPORT control request or
 // received data on OUT endpoint ( Report ID = 0, Type = 0 )
 void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize)
@@ -94,17 +95,10 @@ void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t rep
         if (kbd_leds & KEYBOARD_LED_CAPSLOCK) {
             blink_interval_ms = 0;
             board_led_write(1);
-            ssd1306_clear(&disp);
-            ssd1306_draw_string(&disp, 8, 16, 2,"CAPSLOCK");
-            ssd1306_show(&disp);
-            //numlock_on = true;
         } else {
             blink_interval_ms = BLINK_MOUNTED;
+            bongocat_init(&disp);
             board_led_write(0);
-            ssd1306_clear(&disp);
-            ssd1306_show(&disp);
-            //numlock_on = false;
-            //gpio_put(NUMLOCK_LED_PIN, 0);
         }
     }
 }
