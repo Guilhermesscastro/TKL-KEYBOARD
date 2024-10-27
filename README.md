@@ -15,7 +15,7 @@ This repository contains the source code and documentation for the **USB HID Key
 - [Acknowledgements](#acknowledgements)
 
 ## Introduction
-This project is a prototype of a mechanical keyboard with a TKL format with a PCB board design based on the RP2040 microcontroller. This project was made in the LABSI course at Porto Superior Engineering Institute (ISEP). In addition to the basic keyboard features, the project integrates:
+This project is a prototype of a mechanical keyboard with a TKL format with a PCB board design based on the RP2040 microcontroller. This project was made in the LABSI course at Porto Higher Institute of Engineering (ISEP). In addition to the basic keyboard features, the project integrates:
 - An **OLED display** that shows a **Bongo Cat typing animation** whenever the user types, adding a fun and interactive visual element.
 - A **fully functional rotary encoder** that can be used for multimedia control or fine-tuning in design/editing software.
 - An **LED indicator** that reflects the device's USB connection state (mounted, not mounted, suspended).
