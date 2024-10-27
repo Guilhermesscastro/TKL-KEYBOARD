@@ -25,7 +25,8 @@ This project is a prototype of a mechanical keyboard with a TKL format with a PC
 ## Architecture
 The overall architecture of the project is illustrated below:
 
-*(insert image/gif)*
+![ArquiteturaGeral_V2](https://github.com/user-attachments/assets/4f6e67ad-08d4-4f27-a2c5-b71a01cf1c7b)
+
 
 The core of the project is a microcontroller that performs the following functions:
 - Detects key presses from the keyboard matrix.
@@ -73,25 +74,25 @@ The project leverages several open-source libraries and resources:
 
 The source code of this project is organized into several files, each responsible for different functionalities:
 
-### `source/main.c`
+### `main.c`
 The entry point of the firmware. It initializes all hardware components, sets up USB HID, and enters the main loop where it continuously handles USB tasks, HID reports, and updates the Bongo Cat animation.
 
-### `source/keyboard.c` and `source/keyboard.h`
+### `keyboard.c` and `keyboard.h`
 Handles the keyboard matrix scanning, key debouncing, HID report generation, and management of key states and buffers. Implements the logic for detecting key presses and sending appropriate HID reports to the host.
 
-### `source/bongocat.c` and `source/bongocat.h`
+### `bongocat.c` and `bongocat.h`
 Manages the Bongo Cat animation displayed on the OLED screen. Handles different animation states based on user interactions and timing to provide a dynamic visual feedback mechanism.
 
-### `source/led.c` and `source/led.h`
+### `led.c` and `led.h`
 Controls the LED indicator that reflects the USB connection state. Manages different blink patterns corresponding to various USB states such as mounted, not mounted, and suspended.
 
-### `source/pico-ssd1306/ssd1306.c` and `source/pico-ssd1306/ssd1306.h`
+### `pico-ssd1306/ssd1306.c` and `pico-ssd1306/ssd1306.h`
 Implements the driver for the SSD1306 OLED display. Handles initialization, drawing pixels, rendering images, and managing the display buffer.
 
-### `source/encoder.pio` and `source/encoder.pio.h`
+### `encoder.pio` and `encoder.pio.h`
 Provides the Programmable I/O (PIO) programs for handling the rotary encoder's quadrature signals. Manages the decoding of rotary inputs to enable smooth multimedia control.
 
-### `source/encoder.pio.h`
+### `encoder.pio.h`
 Header file for `encoder.pio`, declaring the initialization functions for the encoder PIO state machines.
 
 ## Current Functionalities
@@ -115,9 +116,13 @@ Header file for `encoder.pio`, declaring the initialization functions for the en
 - **Bootloader Mode Check**: Supports entering bootloader mode via key combination for firmware updates.
 
 ## Results
-The final prototype works well, especially with the new addition of the Bongo Cat animation and the fully functional rotary encoder. The LED indicator effectively communicates the device's USB connection state to the user. Here are images of the assembled PCB:
+The final prototype works well, especially with the new addition of the Bongo Cat animation and the fully functional rotary encoder. The LED indicator effectively communicates the device's USB connection state to the user. Here are images of the assembled Keyboard:
 
-*(insert image/gif)*
+![PCB_BAIXO](https://github.com/user-attachments/assets/8fc8e7ac-2bfe-4a12-98fa-5275a03cabcd)
+![PCB_CIMA](https://github.com/user-attachments/assets/f243551e-7dbe-45a3-80ae-55906385d3e5)
+![VID_20240911_211501-ezgif com-speed (1)](https://github.com/user-attachments/assets/599c9386-edca-4ca7-bd7f-e1e88283797e)
+
+
 
 ## Conclusions
 Overall, the project has achieved most of its objectives, delivering a functional and interactive mechanical keyboard with unique features like the Bongo Cat animation and rotary encoder. Future improvements include:
