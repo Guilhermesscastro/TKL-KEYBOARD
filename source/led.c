@@ -1,28 +1,39 @@
-#include "bsp/board.h"
-#include "pico/stdlib.h"
-#include "led.h"
-const uint32_t LED_PIN = LED_1HZ_PIN;
-//const uint32_t NUMLOCK_LED_PIN = 11;
+#include "bsp/board.h" // Board support package 
+#include "pico/stdlib.h"  // Standard library for Raspberry Pi Pico
+#include "led.h"          // LED module header
 
+
+// Current LED blink interval in milliseconds, initialized to indicate device not mounted
 unsigned int blink_interval_ms = BLINK_NOT_MOUNTED;
-/*
-bool numlock_on = false;
 
-unsigned int led_pwm_on_us = 1;
-unsigned int led_pwm_off_us = 10;
-*/
+#if 0
+Num Lock LED pin (currently unused)
+const uint32_t NUMLOCK_LED_PIN = 11;
+bool numlock_on = false; // Flag to indicate if Num Lock is active
+#endif
 
+
+/**
+ * @brief Initializes the LED GPIO pins and sets their direction.
+ */
 void led_init(void){
-    gpio_init(LED_PIN);
-    gpio_set_dir(LED_PIN, GPIO_OUT);
-     /*gpio_init(NUMLOCK_LED_PIN);
+    gpio_init(LED_PIN);                     // Initialize LED pin
+    gpio_set_dir(LED_PIN, GPIO_OUT);        // Set LED pin as output
+    
+    /* Initialize Num Lock LED pin (currently unused)
+    gpio_init(NUMLOCK_LED_PIN);
     gpio_set_dir(NUMLOCK_LED_PIN, GPIO_OUT);
     */
 }
 
+/**
+ * @brief Sets the state of the board LED.
+ * 
+ * @param state Boolean value to turn the LED on (true) or off (false).
+ */
 void board_led_write(bool state) 
 {
-    gpio_put(LED_PIN, state);
+    gpio_put(LED_PIN, state); // Set LED pin high or low based on state
 }
 
 //--------------------------------------------------------------------+
@@ -64,29 +75,45 @@ void led_pwm_task(void)
 // Device callbacks
 //--------------------------------------------------------------------+
 
-// Invoked when device is mounted
+/**
+ * @brief Callback invoked when the USB device is mounted.
+ * 
+ * Sets the LED blink interval to indicate the device is mounted.
+ */
 void tud_mount_cb(void)
 {
-  blink_interval_ms = BLINK_MOUNTED;
+    blink_interval_ms = BLINK_MOUNTED;
 }
 
-// Invoked when device is unmounted
+/**
+ * @brief Callback invoked when the USB device is unmounted.
+ * 
+ * Sets the LED blink interval to indicate the device is not mounted.
+ */
 void tud_umount_cb(void)
 {
-  blink_interval_ms = BLINK_NOT_MOUNTED;
+    blink_interval_ms = BLINK_NOT_MOUNTED;
 }
 
-// Invoked when usb bus is suspended
-// remote_wakeup_en : if host allow us  to perform remote wakeup
-// Within 7ms, device must draw an average of current less than 2.5 mA from bus
+/**
+ * @brief Callback invoked when the USB bus is suspended.
+ * 
+ * @param remote_wakeup_en Indicates if remote wakeup is enabled by the host.
+ * 
+ * Updates the LED blink interval to indicate suspension.
+ */
 void tud_suspend_cb(bool remote_wakeup_en)
 {
-  (void) remote_wakeup_en;
-  blink_interval_ms = BLINK_SUSPENDED;
+    (void) remote_wakeup_en; // Suppress unused parameter warning
+    blink_interval_ms = BLINK_SUSPENDED;
 }
 
-// Invoked when usb bus is resumed
+/**
+ * @brief Callback invoked when the USB bus is resumed.
+ * 
+ * Sets the LED blink interval to indicate the device is active again.
+ */
 void tud_resume_cb(void)
 {
-  blink_interval_ms = BLINK_MOUNTED;
+    blink_interval_ms = BLINK_MOUNTED;
 }

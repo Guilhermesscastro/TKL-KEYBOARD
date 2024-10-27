@@ -36,11 +36,10 @@ void display_setup(void) {
 int main(void) 
 {
     led_init();
-    keypins_init();
     tusb_init();
     display_setup();
     encoder_init();
-    init_hid_task();
+    init_hid_task();        // This calls keypins_init() internally
 
     while (1) {
         tud_task();

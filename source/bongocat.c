@@ -250,8 +250,10 @@ void update_bongocat_animation(ssd1306_t *disp) {
     ssd1306_show(disp);
 }
 
+
+#if 0
 //update the tapping animation based on alternating paws for each key stroke
-/*void update_bongocat_animation(ssd1306_t *disp) {
+void update_bongocat_animation(ssd1306_t *disp) {
     if (is_tapping) {
         sleep_ms(16);
         uint32_t current_time = to_ms_since_boot(get_absolute_time());
@@ -271,10 +273,10 @@ void update_bongocat_animation(ssd1306_t *disp) {
             bongocat_init(disp); //default state
         }
     }
-}*/
+}
 
 // Function to update animation
-/*void update_bongocat_animation(ssd1306_t *disp) {
+void update_bongocat_animation(ssd1306_t *disp) {
     if (is_animating) {
         sleep_ms(16);
         uint32_t current_time = to_ms_since_boot(get_absolute_time());
@@ -307,5 +309,5 @@ void update_bongocat_animation(ssd1306_t *disp) {
 /*void trigger_bongocat_animation() {
     is_animating = true;
     animation_start_time = to_ms_since_boot(get_absolute_time());
-}*/
-
+}
+#endif

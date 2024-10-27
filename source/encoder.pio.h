@@ -5,105 +5,139 @@
 #pragma once
 
 #if !PICO_NO_HARDWARE
-#include "hardware/pio.h"
+#include "hardware/pio.h" // PIO hardware definitions
 #endif
 
-// ----------- //
+// ------------- //
 // quadratureB //
-// ----------- //
+// ------------- //
 
+// Define wrap points for the quadratureB program
 #define quadratureB_wrap_target 0
 #define quadratureB_wrap 13
 
+// Instruction memory for the quadratureB program
 static const uint16_t quadratureB_program_instructions[] = {
-            //     .wrap_target
-    0x2020, //  0: wait   0 pin, 0                   
-    0x00c6, //  1: jmp    pin, 6                     
-    0xa049, //  2: mov    y, !x                      
-    0x0084, //  3: jmp    y--, 4                     
-    0xa02a, //  4: mov    x, !y                      
-    0x0007, //  5: jmp    7                          
-    0x0047, //  6: jmp    x--, 7                     
-    0x20a0, //  7: wait   1 pin, 0                   
-    0x00ca, //  8: jmp    pin, 10                    
-    0x0040, //  9: jmp    x--, 0                     
-    0xa049, // 10: mov    y, !x                      
-    0x008c, // 11: jmp    y--, 12                    
-    0xa02a, // 12: mov    x, !y                      
-    0x0000, // 13: jmp    0                          
-            //     .wrap
+    // .wrap_target
+    0x2020, //  0: wait   0 pin, 0        ; Wait for Channel B to go low
+    0x00c6, //  1: jmp    pin, 6          ; Jump to instruction 6 if Channel A is high
+    0xa049, //  2: mov    y, !x           ; Toggle x and move to y (prepare to increment)
+    0x0084, //  3: jmp    y--, 4          ; Decrement y and jump to instruction 4
+    0xa02a, //  4: mov    x, !y           ; Toggle y and move back to x (complete increment)
+    0x0007, //  5: jmp    7               ; Jump to instruction 7
+    0x0047, //  6: jmp    x--, 7          ; Decrement x and jump to instruction 7
+    0x20a0, //  7: wait   1 pin, 0        ; Wait for Channel B to go high
+    0x00ca, //  8: jmp    pin, 10         ; Jump to instruction 10 if Channel A is low
+    0x0040, //  9: jmp    x--, 0          ; Decrement x and jump back to start
+    0xa049, // 10: mov    y, !x           ; Toggle x and move to y (prepare to decrement)
+    0x008c, // 11: jmp    y--, 12         ; Decrement y and jump to instruction 12
+    0xa02a, // 12: mov    x, !y           ; Toggle y and move back to x (complete decrement)
+    0x0000, // 13: jmp    0               ; Jump back to the first instruction to loop
+    // .wrap
 };
 
 #if !PICO_NO_HARDWARE
+// Structure representing the quadratureB PIO program
 static const struct pio_program quadratureB_program = {
-    .instructions = quadratureB_program_instructions,
-    .length = 14,
-    .origin = -1,
+    .instructions = quadratureB_program_instructions, // Pointer to the instruction set
+    .length = 14,                                       // Number of instructions
+    .origin = -1,                                       // Origin set to auto
 };
 
+/**
+ * @brief Configures the default settings for the quadratureB state machine.
+ * 
+ * @param offset The instruction memory offset where the program is loaded.
+ * @return pio_sm_config The configured state machine settings.
+ */
 static inline pio_sm_config quadratureB_program_get_default_config(uint offset) {
-    pio_sm_config c = pio_get_default_sm_config();
-    sm_config_set_wrap(&c, offset + quadratureB_wrap_target, offset + quadratureB_wrap);
+    pio_sm_config c = pio_get_default_sm_config();          // Get default state machine configuration
+    sm_config_set_wrap(&c, offset + quadratureB_wrap_target, offset + quadratureB_wrap); // Set wrap points
     return c;
 }
 
+/**
+ * @brief Initializes the quadratureB state machine with the specified settings.
+ * 
+ * @param pio    The PIO instance.
+ * @param sm     The state machine number.
+ * @param offset The instruction memory offset where the program is loaded.
+ * @param a_pin  GPIO pin number for Channel A.
+ * @param b_pin  GPIO pin number for Channel B.
+ */
 static inline void quadratureB_program_init(PIO pio, uint sm, uint offset, uint a_pin, uint b_pin) {
-    pio_sm_config c = quadratureB_program_get_default_config(offset);
-    sm_config_set_in_pins(&c, a_pin);
-    sm_config_set_jmp_pin(&c, b_pin);
-    sm_config_set_in_shift(&c, false, true, 32);
-    pio_sm_init(pio, sm, offset, &c);
-    pio_sm_set_enabled(pio, sm, true);
+    pio_sm_config c = quadratureB_program_get_default_config(offset); // Retrieve default config
+    sm_config_set_in_pins(&c, a_pin);                                 // Assign Channel A to input pins
+    sm_config_set_jmp_pin(&c, b_pin);                                // Assign Channel B to jump pin
+    sm_config_set_in_shift(&c, false, true, 32);                     // Configure the shift register
+    pio_sm_init(pio, sm, offset, &c);                                 // Initialize the state machine
+    pio_sm_set_enabled(pio, sm, true);                               // Enable the state machine
 }
-
 #endif
 
-// ----------- //
+// ------------- //
 // quadratureA //
-// ----------- //
+// ------------- //
 
+// Define wrap points for the quadratureA program
 #define quadratureA_wrap_target 0
 #define quadratureA_wrap 13
 
+// Instruction memory for the quadratureA program
 static const uint16_t quadratureA_program_instructions[] = {
-            //     .wrap_target
-    0x20a0, //  0: wait   1 pin, 0                   
-    0x00c6, //  1: jmp    pin, 6                     
-    0xa049, //  2: mov    y, !x                      
-    0x0084, //  3: jmp    y--, 4                     
-    0xa02a, //  4: mov    x, !y                      
-    0x0007, //  5: jmp    7                          
-    0x0047, //  6: jmp    x--, 7                     
-    0x2020, //  7: wait   0 pin, 0                   
-    0x00ca, //  8: jmp    pin, 10                    
-    0x0040, //  9: jmp    x--, 0                     
-    0xa049, // 10: mov    y, !x                      
-    0x008c, // 11: jmp    y--, 12                    
-    0xa02a, // 12: mov    x, !y                      
-    0x0000, // 13: jmp    0                          
-            //     .wrap
+    // .wrap_target
+    0x20a0, //  0: wait   1 pin, 0        ; Wait for Channel A to go high
+    0x00c6, //  1: jmp    pin, 6          ; Jump to instruction 6 if Channel B is low
+    0xa049, //  2: mov    y, !x           ; Toggle x and move to y (prepare to increment)
+    0x0084, //  3: jmp    y--, 4          ; Decrement y and jump to instruction 4
+    0xa02a, //  4: mov    x, !y           ; Toggle y and move back to x (complete increment)
+    0x0007, //  5: jmp    7               ; Jump to instruction 7
+    0x0047, //  6: jmp    x--, 7          ; Decrement x and jump to instruction 7
+    0x2020, //  7: wait   0 pin, 0        ; Wait for Channel A to go low
+    0x00ca, //  8: jmp    pin, 10         ; Jump to instruction 10 if Channel B is low
+    0x0040, //  9: jmp    x--, 0          ; Decrement x and jump back to start
+    0xa049, // 10: mov    y, !x           ; Toggle x and move to y (prepare to decrement)
+    0x008c, // 11: jmp    y--, 12         ; Decrement y and jump to instruction 12
+    0xa02a, // 12: mov    x, !y           ; Toggle y and move back to x (complete decrement)
+    0x0000, // 13: jmp    0               ; Jump back to the first instruction to loop
+    // .wrap
 };
 
 #if !PICO_NO_HARDWARE
+// Structure representing the quadratureA PIO program
 static const struct pio_program quadratureA_program = {
-    .instructions = quadratureA_program_instructions,
-    .length = 14,
-    .origin = -1,
+    .instructions = quadratureA_program_instructions, // Pointer to the instruction set
+    .length = 14,                                       // Number of instructions
+    .origin = -1,                                       // Origin set to auto
 };
 
+/**
+ * @brief Configures the default settings for the quadratureA state machine.
+ * 
+ * @param offset The instruction memory offset where the program is loaded.
+ * @return pio_sm_config The configured state machine settings.
+ */
 static inline pio_sm_config quadratureA_program_get_default_config(uint offset) {
-    pio_sm_config c = pio_get_default_sm_config();
-    sm_config_set_wrap(&c, offset + quadratureA_wrap_target, offset + quadratureA_wrap);
+    pio_sm_config c = pio_get_default_sm_config();          // Get default state machine configuration
+    sm_config_set_wrap(&c, offset + quadratureA_wrap_target, offset + quadratureA_wrap); // Set wrap points
     return c;
 }
 
+/**
+ * @brief Initializes the quadratureA state machine with the specified settings.
+ * 
+ * @param pio    The PIO instance.
+ * @param sm     The state machine number.
+ * @param offset The instruction memory offset where the program is loaded.
+ * @param a_pin  GPIO pin number for Channel A.
+ * @param b_pin  GPIO pin number for Channel B.
+ */
 static inline void quadratureA_program_init(PIO pio, uint sm, uint offset, uint a_pin, uint b_pin) {
-    pio_sm_config c = quadratureA_program_get_default_config(offset);
-    sm_config_set_in_pins(&c, b_pin);
-    sm_config_set_jmp_pin(&c, a_pin);
-    sm_config_set_in_shift(&c, false, true, 32);
-    pio_sm_init(pio, sm, offset, &c);
-    pio_sm_set_enabled(pio, sm, true);
+    pio_sm_config c = quadratureA_program_get_default_config(offset); // Retrieve default config
+    sm_config_set_in_pins(&c, b_pin);                                 // Assign Channel B to input pins
+    sm_config_set_jmp_pin(&c, a_pin);                                // Assign Channel A to jump pin
+    sm_config_set_in_shift(&c, false, true, 32);                     // Configure the shift register
+    pio_sm_init(pio, sm, offset, &c);                                 // Initialize the state machine
+    pio_sm_set_enabled(pio, sm, true);                               // Enable the state machine
 }
-
 #endif

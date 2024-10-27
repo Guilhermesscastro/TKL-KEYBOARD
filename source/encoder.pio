@@ -1,79 +1,98 @@
-;  SPDX-FileCopyrightText: 
+; SPDX-FileCopyrightText:
 ;        2022 Jamon Terrell <github@jamonterrell.com>
 ;        2023 Arda Alıcı     <ardayaozel@hotmail.com>
-;  SPDX-License-Identifier: MIT
+; SPDX-License-Identifier: MIT
 
+; ------------------------------------------------- ;
+; Quadrature Encoder PIO Programs for Rotary Input ;
+; ------------------------------------------------- ;
+
+; Program to handle quadrature encoding for channel B
 .program quadratureB
 start:
-    wait 0 pin 0            ; wait for B == 0
-    jmp PIN, wait_high      ; if A == 0
-    mov y, !x                   ; x++ {
-    jmp y--, nop1               ;
-nop1:                           ;
-    mov x, !y                   ; }
-    jmp nop2
+    wait 0 pin 0            ; Wait until Channel B (pin 0) is low
+    jmp PIN, wait_high      ; If Channel A (pin corresponding to JMP_PIN) is high, jump to wait_high
+    mov y, !x               ; Toggle register x and move its inverse to y (prepare to increment)
+    jmp y--, nop1           ; Decrement y and jump to nop1
+nop1:
+    mov x, !y               ; Toggle y and move its inverse back to x (complete increment)
+    jmp nop2                ; Jump to nop2
 wait_high:
-    jmp x--, nop2           ; x-- {
-nop2:                       ; }
-
-    wait 1 PIN 0            ; wait for B == 1
-    jmp PIN, wait_low       ; if A == 0
-    jmp x--, start               ; x-- {
-                               ; }
-wait_low:                   ; else
-    mov y, !x                   ; x++ {
-    jmp y--, nop4               ;
-nop4:                           ;
-    mov x, !y                   ;
-    jmp start                   ; }
+    jmp x--, nop2           ; Decrement x (prepare to decrement) and jump to nop2
+nop2:
+    ; Continue to wait for the next state transition
+    wait 1 pin 0            ; Wait until Channel B (pin 0) is high
+    jmp PIN, wait_low       ; If Channel A is low, jump to wait_low
+    jmp x--, start          ; Decrement x and jump back to start
+wait_low:
+    mov y, !x               ; Toggle x and move its inverse to y (prepare to increment)
+    jmp y--, nop4           ; Decrement y and jump to nop4
+nop4:
+    mov x, !y               ; Toggle y and move its inverse back to x (complete increment)
+    jmp start               ; Jump back to start to handle the next state
 
 % c-sdk {
-static inline void quadratureB_program_init(PIO pio, uint sm, uint offset, uint a_pin, uint b_pin) {
-    pio_sm_config c = quadratureB_program_get_default_config(offset);
+    /**
+     * @brief Initializes the quadratureB PIO state machine.
+     * 
+     * @param pio    The PIO instance.
+     * @param sm     The state machine number.
+     * @param offset The instruction memory offset.
+     * @param a_pin  GPIO pin number for Channel A.
+     * @param b_pin  GPIO pin number for Channel B.
+     */
+    static inline void quadratureB_program_init(PIO pio, uint sm, uint offset, uint a_pin, uint b_pin) {
+        pio_sm_config c = quadratureB_program_get_default_config(offset);
 
-    sm_config_set_in_pins(&c, a_pin);
-    sm_config_set_jmp_pin(&c, b_pin);
-    sm_config_set_in_shift(&c, false, true, 32);
-    pio_sm_init(pio, sm, offset, &c);
-    pio_sm_set_enabled(pio, sm, true);
+        sm_config_set_in_pins(&c, a_pin);           ; // Set Channel A as input pin
+        sm_config_set_jmp_pin(&c, b_pin);          ; // Set Channel B as jump pin
+        sm_config_set_in_shift(&c, false, true, 32); // Configure shift register
+        pio_sm_init(pio, sm, offset, &c);           ; // Initialize state machine with configuration
+        pio_sm_set_enabled(pio, sm, true);         ; // Enable the state machine
+    }
 }
-%}
 
-
+/; Program to handle quadrature encoding for channel A
 .program quadratureA
 start:
-    wait 1 pin 0            ; wait for A == 1
-    jmp PIN, wait_high      ; if B == 0
-    mov y, !x                   ; x++ {
-    jmp y--, nop1               ;
-nop1:                           ;
-    mov x, !y                   ; }
-    jmp nop2
+    wait 1 pin 0            ; Wait until Channel A (pin 0) is high
+    jmp PIN, wait_high      ; If Channel B (pin corresponding to JMP_PIN) is low, jump to wait_high
+    mov y, !x               ; Toggle register x and move its inverse to y (prepare to increment)
+    jmp y--, nop1           ; Decrement y and jump to nop1
+nop1:
+    mov x, !y               ; Toggle y and move its inverse back to x (complete increment)
+    jmp nop2                ; Jump to nop2
 wait_high:
-    jmp x--, nop2           ; x-- {
-nop2:                       ; }
-
-    wait 0 PIN 0            ; wait for A == 0
-    jmp PIN, wait_low       ; if B == 0
-    jmp x--, start               ; x-- {
-                               ; }
-wait_low:                   ; else
-    mov y, !x                   ; x++ {
-    jmp y--, nop4               ;
-nop4:                           ;
-    mov x, !y                   ;
-    jmp start                   ; }
-
-
+    jmp x--, nop2           ; Decrement x (prepare to decrement) and jump to nop2
+nop2:
+    ; Continue to wait for the next state transition
+    wait 0 pin 0            ; Wait until Channel A (pin 0) is low
+    jmp PIN, wait_low       ; If Channel B is low, jump to wait_low
+    jmp x--, start          ; Decrement x and jump back to start
+wait_low:
+    mov y, !x               ; Toggle x and move its inverse to y (prepare to increment)
+    jmp y--, nop4           ; Decrement y and jump to nop4
+nop4:
+    mov x, !y               ; Toggle y and move its inverse back to x (complete increment)
+    jmp start               ; Jump back to start to handle the next state
 
 % c-sdk {
-static inline void quadratureA_program_init(PIO pio, uint sm, uint offset, uint a_pin, uint b_pin) {
-    pio_sm_config c = quadratureA_program_get_default_config(offset);
+    /**
+     * @brief Initializes the quadratureA PIO state machine.
+     * 
+     * @param pio    The PIO instance.
+     * @param sm     The state machine number.
+     * @param offset The instruction memory offset.
+     * @param a_pin  GPIO pin number for Channel A.
+     * @param b_pin  GPIO pin number for Channel B.
+     */
+    static inline void quadratureA_program_init(PIO pio, uint sm, uint offset, uint a_pin, uint b_pin) {
+        pio_sm_config c = quadratureA_program_get_default_config(offset);
 
-    sm_config_set_in_pins(&c, b_pin);
-    sm_config_set_jmp_pin(&c, a_pin);
-    sm_config_set_in_shift(&c, false, true, 32);
-    pio_sm_init(pio, sm, offset, &c);
-    pio_sm_set_enabled(pio, sm, true);
+        sm_config_set_in_pins(&c, b_pin);           ; // Set Channel B as input pin
+        sm_config_set_jmp_pin(&c, a_pin);          ; // Set Channel A as jump pin
+        sm_config_set_in_shift(&c, false, true, 32); // Configure shift register
+        pio_sm_init(pio, sm, offset, &c);           ; // Initialize state machine with configuration
+        pio_sm_set_enabled(pio, sm, true);         ; // Enable the state machine
+    }
 }
-%}
